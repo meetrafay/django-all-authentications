@@ -7,7 +7,7 @@ from rest_framework.response import Response
 import re 
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
-
+from myauthentication.utils import generate_otp
 from myauthentication.utils import Util
 
 
@@ -46,30 +46,30 @@ class UserRegistrationSerializer(serializers.Serializer):
             attrs['valid'] = True
         return attrs
     
-    def create(self, validated_data):
-        print("validated_data:", validated_data)
-        if validated_data['valid'] == True:
-            try:
-                with transaction.atomic():
-                    print("validated_data:", validated_data)
+    # def create(self, validated_data):
+    #     print("validated_data:", validated_data)
+    #     if validated_data['valid'] == True:
+    #         try:
+    #             with transaction.atomic():
+    #                 print("validated_data:", validated_data)
                   
-                    user_obj = User.objects.create(
-                        username=validated_data['email'],
-                        email=validated_data['email'],
-                        first_name=validated_data['first_name'],
-                        last_name=validated_data['last_name'],
-                    )
-                    print("user_obj:", user_obj)
-                    user_obj.set_password(validated_data['password'])
-                    user_obj.save()
-                    self.resp['status'] = True
-                    self.resp["message"] = "User Registered successfully"
-                    # self.resp["status"] = True
-                    print("self.resp : ", self.resp)
-            except IntegrityError:
-                self.resp['error'] ="User Already Exists, Try Adding other username"
+    #                 user_obj = User.objects.create(
+    #                     username=validated_data['email'],
+    #                     email=validated_data['email'],
+    #                     first_name=validated_data['first_name'],
+    #                     last_name=validated_data['last_name'],
+    #                 )
+    #                 print("user_obj:", user_obj)
+    #                 user_obj.set_password(validated_data['password'])
+    #                 user_obj.save()
+    #                 self.resp['status'] = True
+    #                 self.resp["message"] = "User Registered successfully"
+    #                 # self.resp["status"] = True
+    #                 print("self.resp : ", self.resp)
+    #         except IntegrityError:
+    #             self.resp['error'] ="User Already Exists, Try Adding other username"
                 
-        return self.resp
+    #     return self.resp
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -193,31 +193,33 @@ class UserPasswordResetSerializer(serializers.Serializer):
         
         
         
-class UserPasswordResetotpSerializer(serializers.Serializer):
+# class UserPasswordResetotpSerializer(serializers.Serializer):
         
-        email = serializers.EmailField(max_length = 255)
-        class Meta:
-            fields = ['email']
+#         email = serializers.EmailField(max_length = 255)
+#         class Meta:
+#             fields = ['email']
 
-        def validate(self, attrs):
-            email = attrs['email']
-            if User.objects.filter(email = email).exists():
-                user = User.objects.get(email = email)
-                uid = urlsafe_base64_encode(force_bytes(user.id))
-                print('Encoded UID', uid)
-                token = PasswordResetTokenGenerator().make_token(user)
-                print('Password Reset Token', token)
-                link = 'http://localhost:9000/auth/api/reset-password/'+uid+'/'+token
-                print('Password Reset Link', link)
-                body = 'Click Following Link to Reset Your Password '+link
-                data = {
-                    'subject':'Reset Password',
-                    'body':body,
-                    'to_email':user.email
-                }
-                Util.send_email(data)
+#         def validate(self, attrs):
+#             email = attrs['email']
+#             if User.objects.filter(email = email).exists():
+#                 user = User.objects.get(email = email)
+#                 otp = generate_otp()  # You need to implement this function to generate OTP
+
+#                 # Associate the OTP with the user
+#                 user.password_reset_otp = otp
+#                 user.save()
+#                 data = {
+#                     'subject': 'Password Reset OTP',
+#                     'body': f'Your OTP for password reset: {otp}',
+#                     'to_email': user.email
+#                 }
+#                 Util.send_email(data)
             
-                return attrs
-            else:
+#                 return attrs
+#             else:
 
-                raise serializers.ValidationError('You are not a Registered User')
+#                 raise serializers.ValidationError('You are not a Registered User')
+            
+# serializers.py
+
+

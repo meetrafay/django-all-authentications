@@ -39,10 +39,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.sites",
+    
     'myauthentication',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 
 ]
 
@@ -179,3 +186,26 @@ SIMPLE_JWT = {
 }
 
 PASSWORD_RESET_TIMEOUT=900          # 900 Sec = 15 Min
+
+#social authentication
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+SITE_ID = 1
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': 'your-client-id',
+            'secret': 'your-client-secret',
+            'key': ''
+        }
+    }
+}
+# URL where users will be redirected after logging in
+LOGIN_REDIRECT_URL = '/'
+
+# URL where users will be redirected after logging out
+LOGOUT_REDIRECT_URL = '/'
