@@ -22,89 +22,29 @@ def get_tokens_for_user(user):
   }
 
 
-# class UserRegistrationView(generics.CreateAPIView):
-#     permission_classes = [AllowAny]
-#     serializer_class = UserRegistrationSerializer
 class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        self.resp = {}
-
-        # Validate the request data
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
-
-        # Check if the user registered using social authentication
-        social_account = SocialAccount.objects.filter(user__email=validated_data['email']).first()
-        if social_account:
-            # User registered using social authentication, return an error
-            self.resp['error'] = "User registration not allowed with social authentication."
-        else:
-            # User registered using custom sign up, continue with the registration logic
-
-            # Create a new user object
-            user = User.objects.create_user(
-                email=validated_data['email'],
-                password=validated_data['password'],
-                first_name=validated_data['first_name'],
-                last_name=validated_data['last_name'],
-            )
-
-            # Generate a token for the new user
-            token = get_tokens_for_user(user)
-
-            self.resp['token'] = token
-            self.resp['msg'] = "Registration successful"
-
-        if 'error' in self.resp:
-            return Response(self.resp, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(self.resp, status=status.HTTP_201_CREATED)
+    serializer_class = UserRegistrationSerializer
     
-
-# class UserLoginView(APIView):
-    
-#     def post(self, request):
-
-#         serializer = UserLoginSerializer(data=request.data)
-
-#         serializer.is_valid(raise_exception=True)        
-#         email = serializer.data.get('email')
-#         password = serializer.data.get('password')  
-#         user = authenticate(request=request, username=email, password=password)
-
-#         if user is not None:
-#             token = get_tokens_for_user(user)
-#             return Response({'token':token,'msg': 'Login Success'}, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'error': 'Email or Password is not Valid'}, status=status.HTTP_404_NOT_FOUND)
 
 class UserLoginView(APIView):
+    
     def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
 
-        email = validated_data.get('email')
-        password = validated_data.get('password')
+        serializer = UserLoginSerializer(data=request.data)
 
-        # Check if the user registered using social authentication
-        social_account = SocialAccount.objects.filter(user__email=email).first()
-        if social_account:
-            # User registered using social authentication, return an error
-            return Response({"error": "Login not allowed with social authentication."}, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer.is_valid(raise_exception=True)        
+        email = serializer.data.get('email')
+        password = serializer.data.get('password')  
         user = authenticate(request=request, username=email, password=password)
 
-        if user:
-            # User is authenticated, generate tokens
+        if user is not None:
             token = get_tokens_for_user(user)
-            return Response({'token': token, 'msg': 'Login Success'}, status=status.HTTP_200_OK)
+            return Response({'token':token,'msg': 'Login Success'}, status=status.HTTP_200_OK)
         else:
-            # Invalid credentials
-            return Response({'error': 'Email or Password is not valid'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Email or Password is not Valid'}, status=status.HTTP_404_NOT_FOUND)
+
+
         
 
 class UserChangePasswordView(APIView):
@@ -173,11 +113,4 @@ class UserLogoutView(APIView):
 
 # views.py
 
-
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from rest_auth.views import LoginView
-from rest_auth.registration.views import SocialLoginView
-
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
 
